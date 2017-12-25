@@ -16,7 +16,39 @@ module.exports = {
         res.header("Access-Control-Allow-Origin", "*");
         pool.query('SELECT * from type Where userid = '+ req.body.userid, function(err, rows, fields) {
             if (err) throw err;
-            res.send(rows)
+            var flag = false;
+            for (let x in rows){
+                pool.query('select * from goods where typeid = '+rows[x].Id, function(err, rows2, fields) {
+                    if (err) throw err;
+                    var goods = [];
+                    for(var y in rows2){
+                        if(rows2[y].userid){
+                            goods.push({
+                                'userid': rows2[y].userid,
+                                'name': rows2[y].name
+                            });
+                        }
+                    }
+                    rows[x]['good'] = goods;
+                    pool.query('select * from goods where typeid = '+rows[x].Id, function(err, rows3, fields) {
+                        if (err) throw err;
+                        var commits = [];
+                        for(var z in rows3){
+                            if(rows3[z].userid){
+                                commits.push({
+                                    'userid': rows3[z].userid,
+                                    'name': rows3[z].name,
+                                    'content': rows3[z].content
+                                });
+                            }
+                        }
+                        rows[x]['commit'] = commits;
+                        if(x == rows.length -1){
+                             res.send(rows);
+                         }
+                    })
+                });
+            }
           });
     },
 
