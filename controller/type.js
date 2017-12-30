@@ -30,11 +30,12 @@ module.exports = {
                         }
                     }
                     rows[x]['good'] = goods;
-                    pool.query('select * from goods where typeid = '+rows[x].Id, function(err, rows3, fields) {
+                    pool.query('select * from commits where typeid = '+rows[x].Id, function(err, rows3, fields) {
                         if (err) throw err;
                         var commits = [];
                         for(var z in rows3){
                             if(rows3[z].userid){
+                                console.log(rows3[z]);
                                 commits.push({
                                     'userid': rows3[z].userid,
                                     'name': rows3[z].name,
