@@ -10,6 +10,12 @@ module.exports = {
             res.send(rows);
         });
     },
+    getAllByNum (req, res) {
+        pool.query(`select * from tickets where num="${req.body.num}"`, function(err, rows, fields) {
+            if (err) throw err;
+            res.send(rows);
+        });
+    },
 
     getNumInfo (req, res) {
         pool.query(`select * from train where num="${req.body.num}"`, function(err, rows, fields) {
@@ -54,9 +60,19 @@ module.exports = {
     },
 
     addInfo (req, res) {
+       
         pool.query(`insert into user_ticket(userid,ticketid,tickets,date) values (${req.body.username},${req.body.trainNum},${req.body.ticketsNum},${req.body.date})`, function(err, rows, fields) {
             if (err) throw err;
             res.send(rows);
+            console.log('The solution is: ', req.body);
+        });
+    },
+
+    addTrain (req, res) {
+        console.log('The solution is: ', req.body);
+        pool.query(`insert into train(num,start_adress,end_adress) values ("${req.body.num}","${req.body.start}","${req.body.end}")`, function(err, rows, fields) {
+            if (err) throw err;
+            res.send('成功');
             console.log('The solution is: ', req.body);
         });
     },

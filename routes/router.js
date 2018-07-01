@@ -30,5 +30,6 @@ router.post('/ticket', train.getTicket)
 router.post('/book', train.bookTicket)
 router.post('/time', train.getTimer)
 router.post('/login', train.login)
-
+router.post('/bynum', train.getAllByNum)
+router.post('/add', train.addTrain)
 module.exports = router;
