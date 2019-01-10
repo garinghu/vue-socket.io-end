@@ -5,8 +5,13 @@ let user = require('../controller/user')
 let type = require('../controller/type')
 let good = require('../controller/good')
 let commit = require('../controller/commit')
+let message = require('../controller/message')
 
 router.get('/user', lab.getAll);
+router.get('/getallmessage', message.getAllmessage);
+router.post('/addnewpost', message.addNewPost);
+router.post('/addcommits', message.addCommits);
+router.post('/messageaddgoods', message.messageAddGoods);
 
 router.post('/login', user.login);
 

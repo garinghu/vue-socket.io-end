@@ -1,6 +1,6 @@
 var express = require('express');
 var app = express();
-var mysql = require('mysql');
+// var mysql = require('mysql');
 var router = require('./routes/router')
 var bodyParser = require('body-parser')
 app.all('*', function(req, res, next) {  
