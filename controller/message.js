@@ -41,7 +41,6 @@ module.exports = {
                         messages[x].headImg = userRows[0].head;
                         // messages[x].content = new Buffer(messages[x].content, 'base64').toString()
                         if(x == messages.length - 1) {
-                            console.log(messages);
                             res.send(messages.reverse());
                         }
                     }) 

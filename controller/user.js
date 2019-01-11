@@ -80,5 +80,6 @@ module.exports = {
         res.header("Access-Control-Allow-Origin", "*");
         console.log(req.body.expoToken);
         res.send('success');
-    }
+    },
+    
 }
