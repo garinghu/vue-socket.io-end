@@ -65,7 +65,7 @@ module.exports = {
         pool.query('UPDATE user set signature= "'+req.body.sign+'" WHERE username= "'+req.body.username+'"', function(err, rows, fields) {
             if (err) throw err;
             res.send('成功')
-          });  
+        });  
     },
 
     changeHead (req, res) {
@@ -78,8 +78,13 @@ module.exports = {
 
     getUserTocken (req, res) {
         res.header("Access-Control-Allow-Origin", "*");
-        console.log(req.body.expoToken);
-        res.send('success');
+        const { userid, expoToken } = req.body;
+        console.log(userid, expoToken)
+        pool.query('UPDATE user set token= "'+expoToken+'" WHERE Id= "'+userid+'"', function(err, rows, fields) {
+            if (err) throw err;
+            console.log(userid, expoToken)
+            res.send('success')
+        });
     },
     
 }
