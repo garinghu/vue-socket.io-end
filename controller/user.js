@@ -74,5 +74,11 @@ module.exports = {
             if (err) throw err;
             res.send('成功')
           });  
+    },
+
+    getUserTocken (req, res) {
+        res.header("Access-Control-Allow-Origin", "*");
+        console.log(req.body.expoToken);
+        res.send('success');
     }
 }

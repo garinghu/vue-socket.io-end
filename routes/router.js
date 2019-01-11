@@ -12,6 +12,7 @@ router.get('/getallmessage', message.getAllmessage);
 router.post('/addnewpost', message.addNewPost);
 router.post('/addcommits', message.addCommits);
 router.post('/messageaddgoods', message.messageAddGoods);
+router.post('/getusertoken', user.getUserTocken);
 
 router.post('/login', user.login);
 
