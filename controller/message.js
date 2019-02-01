@@ -2,8 +2,10 @@ let sql = require('../sql/sql');
 let db = require('../config/db');
 let mysql = require('mysql');
 let pool = mysql.createPool(db);
+let axios = require('axios');
+const async = require('async');
 
-
+const GET_GEO_BY_COORDS = 'http://apis.juhe.cn/geo/';
 const getDate = () => {
     var date = new Date();
     var year = date.getFullYear();
@@ -15,36 +17,151 @@ const getDate = () => {
     return `${year}年${month}月${day}日 ${hour}:${minute}:${second}`
 }
 
+function getAllMessagesBySearch(str) {
+
+}
+
 module.exports = {
     getAllmessage (req, res) {
         res.header("Access-Control-Allow-Origin", "*");
         var messages = [];
+        const { userid, requestTime } = req.body;
         pool.query('SELECT * from message', function(err, rows, fields) {
             if (err) throw err;
             messages = rows;
             new Promise((resolve, reject) => {
-                pool.query(`SELECT * from good WHERE userid=1`, function(err, userRows, fields) {
+                pool.query(`SELECT * from good WHERE userid=${userid}`, function(err, goodRows, fields) {
                     if (err) throw err;
-                    resolve(rows)
+                    pool.query(`SELECT * from collection WHERE userid=${userid}`, function(err, collectionRows, fields) {
+                        resolve({ goods: goodRows, collections: collectionRows });
+                    })
                 })
-            }).then(goods => {
-                for(let x in messages) {
-                    pool.query(`SELECT * from user WHERE id=${messages[x].userid}`, function(err, userRows, fields) {
+            }).then(data => {
+                const { goods, collections } = data;
+                async.eachSeries(messages, (item, callback) => {
+                    pool.query(`SELECT * from user WHERE Id=${item.userid}`, function(err, userRows, fields) {
                         if (err) throw err;
-                        messages[x].hasgood = 0;
+                        item.hasgood = 0;
+                        item.hascollection = 0;
                         for(let i in goods) {
-                            if(goods[i].messsageid == messages[x].id) {
-                                messages[x].hasgood = 1;
+                            if(goods[i].messageid == item.id) {
+                                item.hasgood = 1;
                             }
                         }
-                        messages[x].userName = userRows[0].username;
-                        messages[x].headImg = userRows[0].head;
-                        // messages[x].content = new Buffer(messages[x].content, 'base64').toString()
-                        if(x == messages.length - 1) {
-                            res.send(messages.reverse());
+                        for(let x in collections) {
+                            if(collections[x].messageid == item.id) {
+                                item.hascollection = 1;
+                            }
                         }
-                    }) 
-                }
+                        item.userName = userRows[0].username;
+                        item.headImg = userRows[0].head;
+                        callback(null);
+                    })
+                }, (err) => {
+                    const start = 5*(requestTime - 1);
+                    const end = messages.length < 5*requestTime ? messages.length : 5*requestTime;
+                    if(start >= messages.length) {
+                        res.send('all')
+                    }else {
+                        res.send(messages.splice(start, end).reverse());
+                    }
+                })
+            })
+        });
+    },
+
+    searchMessagesByType (req, res) {
+        res.header("Access-Control-Allow-Origin", "*");
+        var messages = [];
+        const { userid, requestTime, type } = req.body;
+        pool.query(`SELECT * from message WHERE LOCATE('${type}', type) > 0`, function(err, rows, fields) {
+            if (err) throw err;
+            messages = rows;
+            new Promise((resolve, reject) => {
+                pool.query(`SELECT * from good WHERE userid=${userid}`, function(err, goodRows, fields) {
+                    if (err) throw err;
+                    pool.query(`SELECT * from collection WHERE userid=${userid}`, function(err, collectionRows, fields) {
+                        resolve({ goods: goodRows, collections: collectionRows });
+                    })
+                })
+            }).then(data => {
+                const { goods, collections } = data;
+                async.eachSeries(messages, (item, callback) => {
+                    pool.query(`SELECT * from user WHERE Id=${item.userid}`, function(err, userRows, fields) {
+                        if (err) throw err;
+                        item.hasgood = 0;
+                        item.hascollection = 0;
+                        for(let i in goods) {
+                            if(goods[i].messageid == item.id) {
+                                item.hasgood = 1;
+                            }
+                        }
+                        for(let x in collections) {
+                            if(collections[x].messageid == item.id) {
+                                item.hascollection = 1;
+                            }
+                        }
+                        item.userName = userRows[0].username;
+                        item.headImg = userRows[0].head;
+                        callback(null);
+                    })
+                }, (err) => {
+                    const start = 5*(requestTime - 1);
+                    const end = messages.length < 5*requestTime ? messages.length : 5*requestTime;
+                    if(start >= messages.length) {
+                        res.send('all')
+                    }else {
+                        res.send(messages.splice(start, end).reverse());
+                    }
+                })
+            })
+        });
+    },
+
+    searchMessagesByLike (req, res) {
+        res.header("Access-Control-Allow-Origin", "*");
+        var messages = [];
+        const { userid, requestTime, search } = req.body;
+        pool.query(`SELECT * from message WHERE LOCATE('${search}', name) > 0`, function(err, rows, fields) {
+            if (err) throw err;
+            messages = rows;
+            new Promise((resolve, reject) => {
+                pool.query(`SELECT * from good WHERE userid=${userid}`, function(err, goodRows, fields) {
+                    if (err) throw err;
+                    pool.query(`SELECT * from collection WHERE userid=${userid}`, function(err, collectionRows, fields) {
+                        resolve({ goods: goodRows, collections: collectionRows });
+                    })
+                })
+            }).then(data => {
+                const { goods, collections } = data;
+                async.eachSeries(messages, (item, callback) => {
+                    pool.query(`SELECT * from user WHERE Id=${item.userid}`, function(err, userRows, fields) {
+                        if (err) throw err;
+                        item.hasgood = 0;
+                        item.hascollection = 0;
+                        for(let i in goods) {
+                            if(goods[i].messageid == item.id) {
+                                item.hasgood = 1;
+                            }
+                        }
+                        for(let x in collections) {
+                            if(collections[x].messageid == item.id) {
+                                item.hascollection = 1;
+                            }
+                        }
+                        item.userName = userRows[0].username;
+                        item.headImg = userRows[0].head;
+                        callback(null);
+                    })
+                }, (err) => {
+                    const start = 5*(requestTime - 1);
+                    const end = messages.length < 5*requestTime ? messages.length : 5*requestTime;
+                    if(start >= messages.length) {
+                        res.send('all')
+                    }else {
+                        res.send(messages.splice(start, end).reverse());
+                    }
+                })
             })
         });
     },
@@ -67,7 +184,6 @@ module.exports = {
         res.header("Access-Control-Allow-Origin", "*");
         var messages = [];
         const { goods, cardId, userId, hasgood } = req.body;
-        console.log(req.body);
         pool.query(`SELECT * from message WHERE id=${cardId}`, function(err, rows, fields) {
             if (err) throw err;
             pool.query('UPDATE message set good= "'+goods+'" WHERE id= "'+cardId+'"', function(err, rows, fields) {
@@ -80,6 +196,29 @@ module.exports = {
                 });
             } else {
                 pool.query('DELETE FROM good WHERE userid = "'+userId+ '" AND messageid = "'+cardId+'"', function(err, rows, fields) {
+                    if (err) throw err;
+                    res.send('success')
+                });
+            }
+        });
+    },
+
+    messageAddCollections (req, res) {
+        res.header("Access-Control-Allow-Origin", "*");
+        var messages = [];
+        const { collections, cardId, userId, hascollection } = req.body;
+        pool.query(`SELECT * from message WHERE id=${cardId}`, function(err, rows, fields) {
+            if (err) throw err;
+            pool.query('UPDATE message set collection= "'+collections+'" WHERE id= "'+cardId+'"', function(err, rows, fields) {
+                if (err) throw err;
+            }); 
+            if(hascollection == 1) {
+                pool.query('INSERT INTO collection(userid, messageid) VALUES ("'+userId+ '","'+cardId+'")', function(err, rows, fields) {
+                    if (err) throw err;
+                    res.send('success')
+                });
+            } else {
+                pool.query('DELETE FROM collection WHERE userid = "'+userId+ '" AND messageid = "'+cardId+'"', function(err, rows, fields) {
                     if (err) throw err;
                     res.send('success')
                 });
@@ -139,6 +278,20 @@ module.exports = {
             });  
         });
     },
-
-
+    // 聚合数据api
+    getGeoByCoords (req, res) {
+        const { latitude, longitude } = req.body;
+        axios.post(GET_GEO_BY_COORDS, {
+            lng: longitude,
+            lat: latitude,
+            key: '9429d2cb9a0655a63389ec28dde98775',
+            type: 1,
+        })
+        .then(function (response) {
+            res.send(response.result);
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+    }
 }
