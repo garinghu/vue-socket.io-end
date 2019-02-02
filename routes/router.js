@@ -32,7 +32,7 @@ router.post('/messageaddgoods', message.messageAddGoods);
 router.post('/messageaddcollections', message.messageAddCollections);
 router.post('/searchmessagesbytype', message.searchMessagesByType);
 router.post('/searchmessagesbylike', message.searchMessagesByLike);
-
+router.post('/searchmessagesbyfriends', message.searchMessagesByFriends);
 
 router.post('/getusertoken', user.getUserTocken);
 

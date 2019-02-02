@@ -118,6 +118,53 @@ module.exports = {
         });
     },
 
+    searchMessagesByFriends (req, res) {
+        res.header("Access-Control-Allow-Origin", "*");
+        const { userid, requestTime } = req.body;
+        new Promise((resolve, reject) => {
+            pool.query(`SELECT * from good WHERE userid=${userid}`, function(err, goodRows, fields) {
+                if (err) throw err;
+                pool.query(`SELECT * from collection WHERE userid=${userid}`, function(err, collectionRows, fields) {
+                    resolve({ goods: goodRows, collections: collectionRows });
+                })
+            })
+        }).then(data => {
+            const { goods, collections } = data;
+            pool.query(`SELECT * from friend WHERE id=${userid}`, function(err, rows, fields) {
+                let messages = [];
+                async.eachSeries(rows, (item, callback) => {
+                    pool.query(`SELECT * from message WHERE userid=${item.with_whom}`, function(err, userRows, fields) {
+                        if (err) throw err;
+                        messages = [...messages, ...userRows];
+                        callback(null);
+                    })
+                }, (err) => {
+                    for(let i in messages) {
+                        messages[i].hasgood = 0;
+                        messages[i].hascollection = 0;
+                        for(let j in goods) {
+                            if(goods[j].messageid == messages[i].id) {
+                                messages[i].hasgood = 1;
+                            }
+                        }
+                        for(let k in collections) {
+                            if(collections[k].messageid == messages[i].id) {
+                                messages[i].hascollection = 1;
+                            }
+                        }
+                    }
+                    const start = 5*(requestTime - 1);
+                    const end = messages.length < 5*requestTime ? messages.length : 5*requestTime;
+                    if(start >= messages.length) {
+                        res.send('all')
+                    }else {
+                        res.send(messages.splice(start, end).reverse());
+                    }
+                })
+            })
+        })
+    },
+
     searchMessagesByLike (req, res) {
         res.header("Access-Control-Allow-Origin", "*");
         var messages = [];
