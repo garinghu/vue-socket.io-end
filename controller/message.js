@@ -3,7 +3,9 @@ let db = require('../config/db');
 let mysql = require('mysql');
 let pool = mysql.createPool(db);
 let axios = require('axios');
+let path = require('path')
 const async = require('async');
+let fs = require('fs');
 
 const GET_GEO_BY_COORDS = 'http://apis.juhe.cn/geo/';
 const getDate = () => {
@@ -277,18 +279,27 @@ module.exports = {
         res.header("Access-Control-Allow-Origin", "*");
         pool.query('SELECT * from message', function(err, rows, fields) {
             if (err) throw err;
-            const { title, content, uri, userid, type, } = req.body;
-            let newPost = new Buffer(`{
-                "bodyImg":"${uri}",
-                "content": "${content}",
-                "commits": []
-            }`).toString('base64');
-            let test = `${uri}`;
-            const time = getDate()
-            pool.query('INSERT INTO message(name, content, collection, good, userid, time, type) VALUES ("'+title+ '","'+newPost+'", 0, 0, "'+userid+'", "'+time+'", "'+type+'")', function(err, rows, fields) {
-                if (err) throw err;
-                res.send('success')
-            });
+            const { title, content, base64, userid, type, uri, } = req.body;
+            const dataBuffer = new Buffer(base64, 'base64');
+            const imgPath = path.resolve(__dirname, `../image/${Date.now()}.png`);
+            console.log(imgPath)
+            fs.writeFile(imgPath, dataBuffer, function(err){
+                if(err){
+                    console.log(err);
+                }else{
+                    let newPost = new Buffer(`{
+                        "bodyImg":"${imgPath}",
+                        "content": "${content}",
+                        "commits": []
+                    }`).toString('base64');
+                    let test = `${imgPath}`;
+                    const time = getDate()
+                    pool.query('INSERT INTO message(name, content, collection, good, userid, time, type) VALUES ("'+title+ '","'+newPost+'", 0, 0, "'+userid+'", "'+time+'", "'+type+'")', function(err, rows, fields) {
+                        if (err) throw err;
+                        res.send('success')
+                    });
+                }
+            })
         });
     },
 

@@ -9,14 +9,9 @@ app.all('*', function(req, res, next) {
     res.header("X-Powered-By",' 3.2.1')  
     next();  
 });
-app.use(bodyParser.urlencoded({extended: true}));
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
+app.use(bodyParser.json({limit: '50mb'}));
 app.use(router);
-
-
-app.get('/test', function(req, res) {
-    res.send('123123');
-});
 
 var server = app.listen(3000, function () {
     var host = server.address().address;

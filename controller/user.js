@@ -86,7 +86,7 @@ module.exports = {
                     })
                 }
             }
-          });  
+        });  
     },
 
     changeName (req, res) {
@@ -156,43 +156,43 @@ module.exports = {
     sendSms (req, res) {
         res.header("Access-Control-Allow-Origin", "*");
         const { phone, random } = req.body;
-        // axios.post(`https://open.ucpaas.com/ol/sms/sendsms`, {
-        //     sid: '9e00bee333444bf07f246b39931f1aa6',
-        //     token: 'd09d66304b72d1b9ee5a4c6b9d6fa8eb',
-        //     appid: '846c0eaa73f64f338210f332e8220fe9',
-        //     templateid: '424574',
-        //     param: random,
-        //     mobile: phone,
-        // })
-        // .then(function (response) {
-        //     res.send('success');
-        //     console.log(response.data);
-        // })
-        // .catch(function (error) {
-        //     console.log(error);
-        // });
-        res.send('success');
+        axios.post(`https://open.ucpaas.com/ol/sms/sendsms`, {
+            sid: '9e00bee333444bf07f246b39931f1aa6',
+            token: 'd09d66304b72d1b9ee5a4c6b9d6fa8eb',
+            appid: '846c0eaa73f64f338210f332e8220fe9',
+            templateid: '424574',
+            param: random,
+            mobile: phone,
+        })
+        .then(function (response) {
+            res.send('success');
+            console.log(response.data);
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+        // res.send('success');
     },
 
     sendLocateSms (req, res) {
         res.header("Access-Control-Allow-Origin", "*");
         const { address } = req.body;
-        // axios.post(`https://open.ucpaas.com/ol/sms/sendsms`, {
-        //     sid: '9e00bee333444bf07f246b39931f1aa6',
-        //     token: 'd09d66304b72d1b9ee5a4c6b9d6fa8eb',
-        //     appid: '846c0eaa73f64f338210f332e8220fe9',
-        //     templateid: '424574',
-        //     param: address,
-        //     mobile: phone,
-        // })
-        // .then(function (response) {
-        //     res.send('success');
-        //     console.log(response.data);
-        // })
-        // .catch(function (error) {
-        //     console.log(error);
-        // });
-        res.send('success');
+        axios.post(`https://open.ucpaas.com/ol/sms/sendsms`, {
+            sid: '9e00bee333444bf07f246b39931f1aa6',
+            token: 'd09d66304b72d1b9ee5a4c6b9d6fa8eb',
+            appid: '846c0eaa73f64f338210f332e8220fe9',
+            templateid: '424574',
+            param: address,
+            mobile: phone,
+        })
+        .then(function (response) {
+            res.send('success');
+            console.log(response.data);
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+        // res.send('success');
     },
 
     getAllByUserId (req, res) {
