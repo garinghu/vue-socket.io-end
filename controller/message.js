@@ -339,14 +339,10 @@ module.exports = {
     // 聚合数据api
     getGeoByCoords (req, res) {
         const { latitude, longitude } = req.body;
-        axios.post(GET_GEO_BY_COORDS, {
-            lng: longitude,
-            lat: latitude,
-            key: '9429d2cb9a0655a63389ec28dde98775',
-            type: 1,
-        })
+        axios.get(`${GET_GEO_BY_COORDS}?key=9429d2cb9a0655a63389ec28dde98775&lat=${latitude}&lng=${longitude}&type=1`)
         .then(function (response) {
-            res.send(response.result);
+	    console.log(response.data.result);
+            res.send(response.data.result);
         })
         .catch(function (error) {
             console.log(error);

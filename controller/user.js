@@ -176,7 +176,7 @@ module.exports = {
 
     sendLocateSms (req, res) {
         res.header("Access-Control-Allow-Origin", "*");
-        const { address } = req.body;
+        const { address, phone } = req.body;
         axios.post(`https://open.ucpaas.com/ol/sms/sendsms`, {
             sid: '9e00bee333444bf07f246b39931f1aa6',
             token: 'd09d66304b72d1b9ee5a4c6b9d6fa8eb',
