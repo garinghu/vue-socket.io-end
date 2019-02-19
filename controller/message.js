@@ -281,14 +281,14 @@ module.exports = {
             if (err) throw err;
             const { title, content, base64, userid, type, uri, } = req.body;
             const dataBuffer = new Buffer(base64, 'base64');
-            const imgPath = path.resolve(__dirname, `../image/${Date.now()}.png`);
-            console.log(imgPath)
+            const random = Date.now();
+            const imgPath = path.resolve(__dirname, `../image/${random}.png`);
             fs.writeFile(imgPath, dataBuffer, function(err){
                 if(err){
                     console.log(err);
                 }else{
                     let newPost = new Buffer(`{
-                        "bodyImg":"${imgPath}",
+                        "bodyImg":"http://188.131.233.116:3000/image/${random}.png",
                         "content": "${content}",
                         "commits": []
                     }`).toString('base64');
