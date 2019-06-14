@@ -207,7 +207,10 @@ module.exports = {
             return new Promise(resolve => {
                 pool.query(`SELECT * from message WHERE userid=${userid}`, function(err, rows, fields) {
                     if (err) throw err;
-                    resolve({...data, messages: rows})
+                    const messages = (rows || []).map(item => {
+                        return {...item, userName: data.userInfo.username, headImg: data.userInfo.head}
+                    })
+                    resolve({...data, messages})
                 })
             })
         }).then(data => {
@@ -219,7 +222,11 @@ module.exports = {
                         pool.query(`SELECT * from message WHERE id=${item.messageid}`, function(err, messageRows, fields) {
                             if (err) throw err;
                             item.messageInfo = messageRows[0];
-                            callback(null);
+                            pool.query(`SELECT * from user WHERE Id=${item.userid}`, function(err, innUserRows, fields) {
+                                item.messageInfo.userName = innUserRows[0].username;
+                                item.messageInfo.headImg = innUserRows[0].head;
+                                callback(null);
+                           })
                         })
                     }, (err) => {resolve({...data, goods: goodRows})} )
                 })
@@ -233,7 +240,11 @@ module.exports = {
                         pool.query(`SELECT * from message WHERE id=${item.messageid}`, function(err, messageRows, fields) {
                             if (err) throw err;
                             item.messageInfo = messageRows[0];
-                            callback(null);
+                            pool.query(`SELECT * from user WHERE Id=${item.userid}`, function(err, innUserRows, fields) {
+                                item.messageInfo.userName = innUserRows[0].username;
+                                item.messageInfo.headImg = innUserRows[0].head;
+                                callback(null);
+                           })
                         })
                     }, (err) => {resolve({...data, collections: collectionRows})})
                 })

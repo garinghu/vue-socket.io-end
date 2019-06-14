@@ -11,6 +11,21 @@ app.all('*', function(req, res, next) {
     res.header("X-Powered-By",' 3.2.1')  
     next();  
 });
+const responseTime = function () {
+    return function (req, res, next) {
+            req._startTime = new Date() // 获取时间 t1
+        var calResponseTime = function () {
+        var now = new Date(); //获取时间 t2
+        var deltaTime = now - req._startTime;
+                console.log(deltaTime);
+        }
+
+        res.once('finish', calResponseTime);
+        res.once('close', calResponseTime);
+        return next();
+   }
+}
+app.use(responseTime())
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(router);

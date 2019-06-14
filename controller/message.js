@@ -30,7 +30,7 @@ module.exports = {
         const { userid, requestTime } = req.body;
         pool.query('SELECT * from message', function(err, rows, fields) {
             if (err) throw err;
-            messages = rows;
+            messages = rows.reverse();
             new Promise((resolve, reject) => {
                 pool.query(`SELECT * from good WHERE userid=${userid}`, function(err, goodRows, fields) {
                     if (err) throw err;
@@ -65,12 +65,56 @@ module.exports = {
                     if(start >= messages.length) {
                         res.send('all')
                     }else {
-                        res.send(messages.splice(start, end).reverse());
+                        res.send(messages.splice(start, end));
                     }
                 })
             })
         });
     },
+
+    // getMessagesByUserCF (req, res) {
+    //     res.header("Access-Control-Allow-Origin", "*");
+    //     const { userid } = req;
+    //     const messages = [];
+    //     const userCF = [];
+    //     const oUserRows = [];
+    //     const { userid } = req.body;
+    //     new Promise((resolve, reject) => {
+    //         pool.query(`SELECT * from user`, function(err, userRows, fields) {
+    //             if (err) throw err;
+    //             const userCFGood = [];
+    //             oUserRows = [...userRows];
+    //             for(let i in userRows) {
+    //                 pool.query(`SELECT * from good WHERE userid=${userRows[i].Id}`, function(err, goodRows, fields) {
+    //                     if (err) throw err;
+    //                     userCF[userRows[i].Id] = [];
+    //                     for(let j in goodRows) {
+    //                         userCF[userRows[i].Id].push(goodRows[j].messageid);
+    //                     }
+    //                     if(i == userRows.length - 1) {
+    //                         resolve(userCFGood);
+    //                     }
+    //                 })
+    //             }
+    //         })
+    //     })
+    //     .then(userCFGood => {
+    //         return new Promise ((resolve, reject) => {
+    //             for(let i in oUserRows) {
+    //                 // userCF[oUserRows[i].Id] = 
+    //                 let userCF = 0;
+    //                 for(let j in userCFGood[userid]) {
+    //                     if(userCFGood[oUserRows[i].Id].includes(userCFGood[userid][j].messageid)) {
+    //                         userCF++;
+    //                     }
+    //                 }
+    //                 userCF[oUserRows[i].Id] = userCF / Math.sqrt(userCFGood[oUserRows[i].Id].length * userCFGood[userid].length);
+    //             }
+    //             resolve(userCF)
+    //         })
+    //     })
+    //     .then(userCF => )
+    // },
 
     searchMessagesByType (req, res) {
         res.header("Access-Control-Allow-Origin", "*");
@@ -132,13 +176,19 @@ module.exports = {
             })
         }).then(data => {
             const { goods, collections } = data;
-            pool.query(`SELECT * from friend WHERE id=${userid}`, function(err, rows, fields) {
+            pool.query(`SELECT * from friend WHERE userid=${userid}`, function(err, rows, fields) {
                 let messages = [];
                 async.eachSeries(rows, (item, callback) => {
                     pool.query(`SELECT * from message WHERE userid=${item.with_whom}`, function(err, userRows, fields) {
                         if (err) throw err;
-                        messages = [...messages, ...userRows];
-                        callback(null);
+                        pool.query(`SELECT * from user WHERE Id=${item.with_whom}`, function(err, innUserRows, fields) {
+                             // {...userRows, userName: innUserRows[0].username, headImg: innUserRows[0].head}
+                            const userItem = (userRows || []).map((item, index) => {
+                                return {...item, userName: innUserRows[0].username, headImg: innUserRows[0].head}
+                            })
+                            messages = [...messages, ...userItem];
+                            callback(null);
+                        })
                     })
                 }, (err) => {
                     for(let i in messages) {
@@ -335,6 +385,86 @@ module.exports = {
                 res.send('success')
             });  
         });
+    },
+    addSecoundCommits (req, res) {
+        res.header("Access-Control-Allow-Origin", "*");
+        pool.query(`SELECT * from message WHERE id=${req.body.cardId}`, function(err, rows, fields) {
+            if (err) throw err;
+            const { index, commit, userid, userName, headImg} = req.body;
+            let newContent = JSON.parse(new Buffer(rows[0].content, 'base64').toString());
+            if(!newContent.commits[index].second) {
+                newContent.commits[index].second = [];
+            }
+            newContent.commits[index].second.push({
+                "name": `${userName}`,
+                "content": `${commit}`,
+                "goods": 0,
+                "userid": `${userid}`,
+                "headImg": `${headImg}`,
+                "time": `${getDate()}`
+            })
+
+            newContent = new Buffer(JSON.stringify(newContent)).toString('base64');
+            pool.query('UPDATE message set content= "'+newContent+'" WHERE id= "'+req.body.cardId+'"', function(err, rows, fields) {
+                if (err) throw err;
+                res.send('success')
+            });  
+        });
+    },
+    addGoodToMessageReq (req, res) {
+        res.header("Access-Control-Allow-Origin", "*");
+        const { userid, messageId, whom } = req.body;
+        pool.query('INSERT INTO message_req(userid, messageId, whom, checked) VALUES ("'+userid+ '","'+messageId+'","'+whom+'", 0)', function(err, rows, fields) {
+            if (err) throw err;
+            res.send({ id: rows[0] });
+        });
+    },
+    getMessagesTipNoCheck (req, res) {
+        res.header("Access-Control-Allow-Origin", "*");
+        const { userid } = req.body;
+        const messages = [];
+        const messagesChecked = [];
+        pool.query(`SELECT * from message_req WHERE userid=${userid}`, async function(err, orows, fields) {
+            if (err) throw err;
+            async.eachSeries(orows, (item, callback) => {
+                const { userid, messageId, whome } = item;
+                const messagesItem = { id: item.id, checked: item.checked };
+                pool.query(`SELECT * from user WHERE Id=${userid}`, function(err, rows, fields) {
+                    if (err) throw err;
+                    messagesItem.userInfo = {
+                        username: rows[0].username,
+                        head: rows[0].head,
+                        userid
+                    }
+                    pool.query(`SELECT * from message WHERE id=${messageId}`, function(err, rows, fields) {
+                        if (err) throw err;
+                        messagesItem.messageInfo = {
+                            id: messageId,
+                            name: rows[0].name
+                        }
+                        if(item.checked) {
+                            messagesChecked.push(messagesItem)
+                        } else {
+                            messages.push(messagesItem);
+                        }
+                        callback(null);
+                    });
+                });
+            }, (err) => {
+                res.send({
+                    messages,
+                    messagesChecked
+                });
+            })
+        });
+    },
+    checkedMessagesTip (req, res) {
+        res.header("Access-Control-Allow-Origin", "*");
+        const { id } = req.body;
+        pool.query('UPDATE message_req set checked=1 WHERE id= "'+id+'"', function(err, rows, fields) {
+            if (err) throw err;
+            res.send('success');
+        }); 
     },
     // 聚合数据api
     getGeoByCoords (req, res) {

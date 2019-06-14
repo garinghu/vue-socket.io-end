@@ -25,14 +25,18 @@ router.post('/addfriendbyuserid', friend.addFriendByUserId);
 router.get('/getallfriendreq', friend_req.getAllFriendReq);
 router.post('/deletehasrequestbyid', friend_req.deleteHasRequestById);
 
+router.post('/addgoodtomessagereq', message.addGoodToMessageReq);
+router.post('/getmessagestipnocheck', message.getMessagesTipNoCheck);
 router.post('/getallmessage', message.getAllmessage);
 router.post('/addnewpost', message.addNewPost);
 router.post('/addcommits', message.addCommits);
+router.post('/addsecoundcommits', message.addSecoundCommits);
 router.post('/messageaddgoods', message.messageAddGoods);
 router.post('/messageaddcollections', message.messageAddCollections);
 router.post('/searchmessagesbytype', message.searchMessagesByType);
 router.post('/searchmessagesbylike', message.searchMessagesByLike);
 router.post('/searchmessagesbyfriends', message.searchMessagesByFriends);
+router.post('/checkedmessagetip', message.checkedMessagesTip);
 
 router.post('/getusertoken', user.getUserTocken);
 
@@ -51,6 +55,7 @@ router.post('/mytype', type.mytype);
 router.post('/addgood', good.add);
 
 router.post('/addcommit', commit.add);
+
 
 router.post('/getchatroombyusers', chat_room.getChatRoomIdByUsers);
 router.post('/storemessagesbychatroomid', chat_room.storeMessagesByChatRoomId);
